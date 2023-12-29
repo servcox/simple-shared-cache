@@ -30,11 +30,11 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         }
     }
 
-    public async Task Set<T>(String key, T value, CancellationToken cancellationToken = default)
+    public async Task Set<TRecord>(String key, TRecord value, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
-        var address = AddressUtilities.Compute<T>(key);
+        var address = AddressUtilities.Compute<TRecord>(key);
         var blob = _container.GetBlobClient(address);
 
         using var stream = new MemoryStream();
@@ -43,20 +43,20 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         await blob.UploadAsync(stream, true, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<T> Get<T>(String key, CancellationToken cancellationToken = default)
+    public async Task<TRecord> Get<TRecord>(String key, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
-        var value = await TryGet<T>(key, cancellationToken).ConfigureAwait(false);
+        var value = await TryGet<TRecord>(key, cancellationToken).ConfigureAwait(false);
         if (value is null) throw new NotFoundException();
         return value;
     }
 
-    public async Task<T?> TryGet<T>(String key, CancellationToken cancellationToken = default)
+    public async Task<TRecord?> TryGet<TRecord>(String key, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
-        var address = AddressUtilities.Compute<T>(key);
+        var address = AddressUtilities.Compute<TRecord>(key);
         var blob = _container.GetBlobClient(address);
 
         if (!await blob.ExistsAsync(cancellationToken).ConfigureAwait(false)) return default;
@@ -66,7 +66,7 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         // ReSharper disable once UseAwaitUsing
         using var stream = download.Value.Content.ToStream();
 #pragma warning restore CA2007
-        var a = await JsonSerializer.DeserializeAsync<T>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
-        return a;
+        var record = await JsonSerializer.DeserializeAsync<TRecord>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
+        return record;
     }
 }
