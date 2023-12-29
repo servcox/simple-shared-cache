@@ -71,8 +71,18 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
     }
     
     
-    // public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
-    // {
-    //     _container.GetBlobsAsync(prefix:)
-    // }
+    public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
+    {
+        var modelPrefix = AddressUtilities.ComputeModelPrefix<TRecord>();
+        var blobs =  _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken);
+
+        var output = new List<TRecord>();
+        await foreach (var blob in blobs)
+        {
+            var key = blob.Name;
+            output.Add(await Get<TRecord>(key, cancellationToken).ConfigureAwait(false));
+        }
+
+        return output;
+    }
 }
