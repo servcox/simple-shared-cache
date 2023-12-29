@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using ServcoX.SimpleSharedCache.Test.Fixtures;
+using ServcoX.SimpleSharedCache.Test.Records;
 using ServcoX.SimpleSharedCache.Utilities;
 
 namespace ServcoX.SimpleSharedCache.Test;
@@ -11,8 +12,9 @@ public class SimpleSharedCacheTests
 
     private static readonly Records.TestRecord TestRecord = new()
     {
-        A = Guid.NewGuid().ToString("N"),
+        A = GenerateId(),
     };
+
 
     private static readonly String TestRecordSerialised = JsonSerializer.Serialize(TestRecord);
 
@@ -20,7 +22,7 @@ public class SimpleSharedCacheTests
     public async Task CanWrite()
     {
         using var wrapper = new Wrapper();
-        var key = Guid.NewGuid().ToString("N");
+        var key = GenerateId();
         await wrapper.Sut.Set(key, TestRecord);
         var blobName = AddressUtilities.Compute<Records.TestRecord>(key);
 
@@ -34,7 +36,7 @@ public class SimpleSharedCacheTests
     public async Task CanRead()
     {
         using var wrapper = new Wrapper();
-        var key = Guid.NewGuid().ToString("N");
+        var key = GenerateId();
         var blobName = AddressUtilities.Compute<Records.TestRecord>(key);
         await wrapper.Container.UploadBlobAsync(blobName, new BinaryData(Encoding.UTF8.GetBytes(TestRecordSerialised)));
         var read = await wrapper.Sut.TryGet<Records.TestRecord>(key);
@@ -45,8 +47,29 @@ public class SimpleSharedCacheTests
     public async Task CanReadNotFound()
     {
         using var wrapper = new Wrapper();
-        var key = Guid.NewGuid().ToString("N");
+        var key = GenerateId();
         var read = await wrapper.Sut.TryGet<Records.TestRecord>(key);
         read.Should().BeNull();
     }
+
+    [Fact]
+    public async Task CanList()
+    {
+        using var wrapper = new Wrapper();
+        var keyA1 = GenerateId();
+        await wrapper.Sut.Set(keyA1, new TestRecord { A = keyA1 });
+
+        var keyA2 = GenerateId();
+        await wrapper.Sut.Set(keyA2, new TestRecord { A = keyA2 });
+
+        var keyB = GenerateId();
+        await wrapper.Sut.Set(keyB, new TestAlternativeRecord { A = keyB });
+
+        var records = await wrapper.Sut.List<TestRecord>();
+        records.Count.Should().Be(2);
+        records.Should().ContainSingle(a => a.A == keyA1);
+        records.Should().ContainSingle(a => a.A == keyA2);
+    }
+
+    private static String GenerateId() => Guid.NewGuid().ToString("N");
 }

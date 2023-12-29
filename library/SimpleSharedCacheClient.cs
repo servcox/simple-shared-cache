@@ -70,7 +70,6 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         return record;
     }
     
-    
     public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
     {
         var modelPrefix = AddressUtilities.ComputeModelPrefix<TRecord>();
