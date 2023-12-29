@@ -30,7 +30,7 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         }
     }
 
-    public async Task Set<TRecord>(String key, TRecord value, CancellationToken cancellationToken = default)
+    public async Task Set<TRecord>(String key, TRecord record, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
@@ -38,7 +38,7 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         var blob = _container.GetBlobClient(address);
 
         using var stream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(stream, value, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync(stream, record, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
         await blob.UploadAsync(stream, true, cancellationToken).ConfigureAwait(false);
     }
