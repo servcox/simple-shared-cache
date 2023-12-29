@@ -69,4 +69,10 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         var record = await JsonSerializer.DeserializeAsync<TRecord>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
         return record;
     }
+    
+    
+    // public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
+    // {
+    //     _container.GetBlobsAsync(prefix:)
+    // }
 }

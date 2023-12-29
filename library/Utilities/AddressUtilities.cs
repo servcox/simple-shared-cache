@@ -19,15 +19,25 @@ public static class AddressUtilities
 
         if (key.Contains('/')) throw new ArgumentException("`key` cannot contain '/'", nameof(key));
 
+        var modelId = ComputeModelPrefix(type);
+
+        return $"{modelId}/{key}";
+    }
+
+    private static String ComputeModelPrefix(Type type)
+    {
         if (!ModelIdCache.TryGetValue(type, out var modelId))
         {
             using var sha = SHA256.Create();
+            //  Recommendation not supported in .NET Standard 2
+#pragma warning disable CA1850
             var hash = sha.ComputeHash(type.GUID.ToByteArray())
+#pragma warning restore CA1850
                 .Take(HashLength)
                 .ToArray();
             modelId = ModelIdCache[type] = $"{type.FullName}/{Rfc7515CEncoder.Encode(hash)}";
         }
 
-        return $"{modelId}/{key}";
+        return modelId;
     }
 }
