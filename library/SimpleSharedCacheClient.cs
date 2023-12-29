@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
-using System.Text.Json.Serialization;
 using Azure;
-using Azure.Core;
 using Azure.Storage.Blobs;
 using ServcoX.SimpleSharedCache.Exceptions;
 using ServcoX.SimpleSharedCache.Utilities;
