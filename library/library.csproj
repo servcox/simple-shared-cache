@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>ServcoX.SimpleSharedCache</AssemblyName>
+        <RootNamespace>ServcoX.SimpleSharedCache</RootNamespace>
+        <TargetFrameworks>net8.0;net7.0;netstandard2.0</TargetFrameworks>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>ServcoX.SimpleSharedCache</PackageId>
+        <Title>ServcoX Simple Shared Cache</Title>
+        <Authors>ServcoX</Authors>
+        <Description>Lightweight shared cache, backed on Azure Storage.</Description>
+        <PackageProjectUrl>https://github.com/servcox/simple-shared-cache</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/servcox/simple-shared-cache/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageIcon>servco.png</PackageIcon>
+        <RepositoryUrl>https://github.com/servcox/simple-shared-cache</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Company>ServcoX</Company>
+        <Product>ServcoX.SimpleSharedCache</Product>
+
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <WarningsNotAsErrors>NU5125;CA1822;SYSLIB0020;CA1850</WarningsNotAsErrors>
+        <NoWarn>CA1040;CA1711;CA1716;CA1510;CA1307</NoWarn>
+        <AnalysisMode>All</AnalysisMode>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="servco.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+      <PackageReference Include="ServcoX.Rfc7515C" Version="1.2.0" />
+    </ItemGroup>
+
+</Project>
