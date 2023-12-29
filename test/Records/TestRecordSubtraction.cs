@@ -1,5 +1,5 @@
 namespace ServcoX.SimpleSharedCache.Test.Records;
 
-public class RecordSubtraction
+public class TestRecordSubtraction
 {
 }

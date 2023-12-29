@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json;
 using ServcoX.SimpleSharedCache.Test.Fixtures;
 using ServcoX.SimpleSharedCache.Utilities;
-using Record = Xunit.Record;
 
 namespace ServcoX.SimpleSharedCache.Test;
 
@@ -10,7 +9,7 @@ public class SimpleSharedCacheTests
 {
     private const String DevelopmentConnectionString = "UseDevelopmentStorage=true;";
 
-    private static readonly Records.Record TestRecord = new()
+    private static readonly Records.TestRecord TestRecord = new()
     {
         A = Guid.NewGuid().ToString("N"),
     };
@@ -23,7 +22,7 @@ public class SimpleSharedCacheTests
         using var wrapper = new Wrapper();
         var key = Guid.NewGuid().ToString("N");
         await wrapper.Sut.Set(key, TestRecord);
-        var blobName = AddressUtilities.Compute<Record>(key);
+        var blobName = AddressUtilities.Compute<Records.TestRecord>(key);
 
         var blob = wrapper.Container.GetBlobClient(blobName);
         var read = await blob.DownloadContentAsync();
@@ -36,9 +35,9 @@ public class SimpleSharedCacheTests
     {
         using var wrapper = new Wrapper();
         var key = Guid.NewGuid().ToString("N");
-        var blobName = AddressUtilities.Compute<Record>(key);
+        var blobName = AddressUtilities.Compute<Records.TestRecord>(key);
         await wrapper.Container.UploadBlobAsync(blobName, new BinaryData(Encoding.UTF8.GetBytes(TestRecordSerialised)));
-        var read = await wrapper.Sut.TryGet<Record>(key);
+        var read = await wrapper.Sut.TryGet<Records.TestRecord>(key);
         read.Should().BeEquivalentTo(TestRecord);
     }
 
@@ -47,7 +46,7 @@ public class SimpleSharedCacheTests
     {
         using var wrapper = new Wrapper();
         var key = Guid.NewGuid().ToString("N");
-        var read = await wrapper.Sut.TryGet<Record>(key);
+        var read = await wrapper.Sut.TryGet<Records.TestRecord>(key);
         read.Should().BeNull();
     }
 }

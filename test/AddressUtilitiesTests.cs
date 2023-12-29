@@ -13,11 +13,11 @@ public class AddressUtilitiesTests
     public void CanDetectDifferentKey() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<Record>("2"));
 
     [Fact]
-    public void CanDetectFieldAddition() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<RecordAddition>("1"));
+    public void CanDetectFieldAddition() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<TestRecordAddition>("1"));
 
     [Fact]
-    public void CanDetectFieldReplacement() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<RecordReplacement>("1"));
+    public void CanDetectFieldReplacement() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<TestRecordReplacement>("1"));
 
     [Fact]
-    public void CanDetectFieldSubtraction() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<RecordSubtraction>("1"));
+    public void CanDetectFieldSubtraction() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<TestRecordSubtraction>("1"));
 }
