@@ -16,6 +16,7 @@
         <RepositoryUrl>https://github.com/servcox/simple-shared-cache</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <Description>Lightweight shared cache, backed on Azure Storage.</Description>
+        <Version>1.1.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,7 +30,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
-      <PackageReference Include="ServcoX.SimpleSharedCache" Version="1.0.0" />
+      <PackageReference Include="ServcoX.SimpleSharedCache" Version="1.1.0" />
     </ItemGroup>
 
 </Project>
