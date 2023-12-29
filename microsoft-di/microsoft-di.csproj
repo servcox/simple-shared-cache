@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <RootNamespace>ServcoX.SimpleSharedCache.DependencyInjection</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+        <LangVersion>12</LangVersion>
+        <AssemblyName>ServcoX.SimpleSharedCache.DependencyInjection</AssemblyName>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>ServcoX.SimpleSharedCache.DependencyInjection</PackageId>
+        <Title>ServcoX SimpleSharedCache DependencyInjection</Title>
+        <PackageProjectUrl>https://github.com/servcox/simple-shared-cache</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/servcox/simple-shared-cache/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageIcon>servco.png</PackageIcon>
+        <RepositoryUrl>https://github.com/servcox/simple-shared-cache</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <Description>Lightweight shared cache, backed on Azure Storage.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="servco.png" />
+      <Content Include="servco.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+      <PackageReference Include="ServcoX.SimpleSharedCache" Version="1.0.0" />
+    </ItemGroup>
+
+</Project>

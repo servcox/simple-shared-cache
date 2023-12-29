@@ -5,6 +5,9 @@ servers? Need it to be cheap? SimpleSharedCache is for you.
 
 SimpleSharedCache persists data in Azure Blob Storage, so it's super cheap, reliable and quite fast.
 
+# Installation
+Grab it from NuGet from `dotnet add package ServcoX.SimpleSharedCache` or `dotnet add package ServcoX.SimpleSharedCache.DependencyInjection` for DI support.
+
 ## How do I make it go?
 Define what you want to cache. Something like this:
 ```c#
@@ -13,7 +16,12 @@ public readonly record struct TestRecord(String Body);
 
 Instantiate the cache like so:
 ```c#
-var cache = new SimpleSharedCacheClient("=== your connection string ===");
+var cache = new SimpleSharedCacheClient("=== onnection string goes here ===");
+```
+
+Or if you're using Microsoft DI, then you can use this:
+```c#
+builder.Services.AddSimpleSharedCache("=== connection string goes here ===");
 ```
 
 Write your record:
