@@ -9,4 +9,6 @@ await cache.Set(key, r);
 r = await cache.Get<TestRecord>(key);
 Console.WriteLine(r.Body);
 
+var records = await cache.List<TestRecord>();
+
 public readonly record struct TestRecord(String Body);

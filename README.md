@@ -36,6 +36,11 @@ var record = await cache.Get<TestRecord>(key);
 Console.WriteLine(record.Body); // Outputs "Something to cache"
 ```
 
+If you want, you can retrieve all records of a given type too:
+```c#
+var records = await cache.List<TestRecord>();
+```
+
 ## How is the cache keyed?
 Records are stored using a combination of the records `key` that you provide, along with a hash of the 
 records schema. For instance, in the example above if I add/rename/delete a field in `TestRecord` it
