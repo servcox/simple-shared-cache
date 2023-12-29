@@ -2,21 +2,22 @@ using Azure.Storage.Blobs;
 
 namespace ServcoX.SimpleSharedCache.Test.Fixtures;
 
-public class Wrapper : IDisposable
+public sealed class Wrapper : IDisposable
 {
     private const String DevelopmentConnectionString = "UseDevelopmentStorage=true;";
-    
-    public String Postfix { get; }
+
     public BlobContainerClient Container { get; }
-    public ISimpleSharedCache Sut { get; }
+    public ISimpleSharedCacheClient Sut { get; }
 
     public Wrapper()
     {
-        Postfix = Guid.NewGuid().ToString("N").ToUpperInvariant();
-        Sut = new(DevelopmentConnectionString, Postfix);
+        var containerName = $"cache-{Guid.NewGuid().ToString("N").ToLowerInvariant()}";
+        Sut = new SimpleSharedCacheClient(DevelopmentConnectionString, cfg => cfg
+            .UseContainerName(containerName)
+        );
 
         var service = new BlobServiceClient(DevelopmentConnectionString);
-        Container = service.GetBlobContainerClient($"cache{Postfix.ToLowerInvariant()}");
+        Container = service.GetBlobContainerClient(containerName);
     }
 
     public void Dispose()

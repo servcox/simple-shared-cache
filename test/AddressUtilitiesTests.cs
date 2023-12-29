@@ -10,7 +10,7 @@ public class AddressUtilitiesTests
     public void CanMatchSelf() => AddressUtilities.Compute<Record>("1").Should().BeEquivalentTo(AddressUtilities.Compute<Record>("1"));
 
     [Fact]
-    public void CanDetectDifferentKey() => AddressUtilities.Compute<Record>("1").Should().BeEquivalentTo(AddressUtilities.Compute<Record>("2"));
+    public void CanDetectDifferentKey() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<Record>("2"));
 
     [Fact]
     public void CanDetectFieldAddition() => AddressUtilities.Compute<Record>("1").Should().NotBeEquivalentTo(AddressUtilities.Compute<RecordAddition>("1"));

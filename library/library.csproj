@@ -21,20 +21,23 @@
 
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarningsNotAsErrors>NU5125;CA1822;SYSLIB0020;CA1850</WarningsNotAsErrors>
-        <NoWarn>CA1040;CA1711;CA1716;CA1510;CA1307</NoWarn>
+        <NoWarn>CA1040;CA1711;CA1716;CA1510;CA1307;CA1724</NoWarn>
         <AnalysisMode>All</AnalysisMode>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-      <None Update="servco.png">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
-    </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
       <PackageReference Include="ServcoX.Rfc7515C" Version="1.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="servco.png" />
+      <Content Include="servco.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </Content>
     </ItemGroup>
 
 </Project>

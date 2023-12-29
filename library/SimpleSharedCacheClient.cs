@@ -10,57 +10,45 @@ namespace ServcoX.SimpleSharedCache;
 
 public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
 {
+    private readonly Configuration _configuration;
     private readonly BlobContainerClient _container;
 
-    private static readonly JsonSerializerOptions SerializerOptions = new()
+    public SimpleSharedCacheClient(String connectionString, Action<Configuration>? builder = null)
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-    };
+        if (String.IsNullOrEmpty(connectionString)) throw new ArgumentException("Cannot be null or empty", nameof(connectionString));
 
-    private static readonly BlobClientOptions BlobClientOptions = new()
-    {
-        Retry =
-        {
-            Mode = RetryMode.Exponential,
-            Delay = TimeSpan.FromSeconds(0.5),
-            MaxRetries = 4,
-        },
-    };
+        _configuration = new();
+        builder?.Invoke(_configuration);
 
-    public SimpleSharedCacheClient(String connectionString, String? postfix = null)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(connectionString, nameof(connectionString));
-        
-        var service = new BlobServiceClient(connectionString, BlobClientOptions);
+        var service = new BlobServiceClient(connectionString, _configuration.BlobClientOptions);
 
-        var containerName = postfix is null ? "cache" : $"cache{postfix.ToLowerInvariant()}";
         try
         {
-            _container = service.CreateBlobContainer(containerName);
+            _container = service.CreateBlobContainer(_configuration.ContainerName);
         }
-        catch (RequestFailedException ex)when (ex.ErrorCode == "ContainerAlreadyExists")
+        catch (RequestFailedException ex) when (ex.ErrorCode == "ContainerAlreadyExists")
         {
-            _container = service.GetBlobContainerClient(containerName);
+            _container = service.GetBlobContainerClient(_configuration.ContainerName);
         }
     }
 
     public async Task Set<T>(String key, T value, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key, nameof(key));
-        
+        if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
+
         var address = AddressUtilities.Compute<T>(key);
         var blob = _container.GetBlobClient(address);
 
         using var stream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(stream, value, SerializerOptions, cancellationToken).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync(stream, value, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
         await blob.UploadAsync(stream, true, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<T> Get<T>(String key, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key, nameof(key));
-        
+        if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
+
         var value = await TryGet<T>(key, cancellationToken).ConfigureAwait(false);
         if (value is null) throw new NotFoundException();
         return value;
@@ -68,14 +56,19 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
 
     public async Task<T?> TryGet<T>(String key, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(key, nameof(key));
-        
+        if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
+
         var address = AddressUtilities.Compute<T>(key);
         var blob = _container.GetBlobClient(address);
 
         if (!await blob.ExistsAsync(cancellationToken).ConfigureAwait(false)) return default;
         var download = await blob.DownloadContentAsync(cancellationToken).ConfigureAwait(false);
-        await using var stream = download.Value.Content.ToStream().ConfigureAwait(false);
-        return await JsonSerializer.DeserializeAsync<T>(stream, SerializerOptions, cancellationToken);
+        // System.Text.Json has a problem with the recommended
+#pragma warning disable CA2007 
+        // ReSharper disable once UseAwaitUsing
+        using var stream = download.Value.Content.ToStream();
+#pragma warning restore CA2007
+        var a = await JsonSerializer.DeserializeAsync<T>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
+        return a;
     }
 }

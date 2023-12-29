@@ -14,11 +14,11 @@ public static class AddressUtilities
 
     public static String Compute(Type type, String key)
     {
-        ArgumentNullException.ThrowIfNull(type, nameof(type));
-        ArgumentException.ThrowIfNullOrEmpty(key);
-        
-        if (key.Contains('/', StringComparison.Ordinal)) throw new ArgumentException("`key` cannot contain '/'", nameof(key));
-        
+        if (type is null) throw new ArgumentNullException(nameof(type));
+        if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
+
+        if (key.Contains('/')) throw new ArgumentException("`key` cannot contain '/'", nameof(key));
+
         if (!ModelIdCache.TryGetValue(type, out var modelId))
         {
             using var sha = SHA256.Create();

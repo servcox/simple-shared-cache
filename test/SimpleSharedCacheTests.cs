@@ -37,7 +37,7 @@ public class SimpleSharedCacheTests
         using var wrapper = new Wrapper();
         var key = Guid.NewGuid().ToString("N");
         var blobName = AddressUtilities.Compute<Record>(key);
-        wrapper.Container.UploadBlob(blobName, new BinaryData(Encoding.UTF8.GetBytes(TestRecordSerialised)));
+        await wrapper.Container.UploadBlobAsync(blobName, new BinaryData(Encoding.UTF8.GetBytes(TestRecordSerialised)));
         var read = await wrapper.Sut.TryGet<Record>(key);
         read.Should().BeEquivalentTo(TestRecord);
     }
