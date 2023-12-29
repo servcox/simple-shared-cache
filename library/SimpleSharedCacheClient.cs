@@ -62,23 +62,23 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         if (!await blob.ExistsAsync(cancellationToken).ConfigureAwait(false)) return default;
         var download = await blob.DownloadContentAsync(cancellationToken).ConfigureAwait(false);
         // System.Text.Json has a problem with the recommended
-#pragma warning disable CA2007 
+#pragma warning disable CA2007
         // ReSharper disable once UseAwaitUsing
         using var stream = download.Value.Content.ToStream();
 #pragma warning restore CA2007
         var record = await JsonSerializer.DeserializeAsync<TRecord>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
         return record;
     }
-    
+
     public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
     {
         var modelPrefix = AddressUtilities.ComputeModelPrefix<TRecord>();
-        var blobs =  _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken);
+        var blobs = _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken);
 
         var output = new List<TRecord>();
         await foreach (var blob in blobs)
         {
-            var key = blob.Name;
+            var key = AddressUtilities.ExtractKeyFromAddress(blob.Name);
             output.Add(await Get<TRecord>(key, cancellationToken).ConfigureAwait(false));
         }
 

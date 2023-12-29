@@ -1,19 +1,17 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using ServcoX.Rfc7515C;
 
 namespace ServcoX.SimpleSharedCache.Utilities;
 
 public static class AddressUtilities
 {
-    private const Int32 HashLength = 8;
     private const Char Separator = '/';
     private static readonly ConcurrentDictionary<Type, String> ModelIdCache = new();
 
     public static String Compute<TRecord>(String key)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
-        if (key.Contains('/')) throw new ArgumentException("`key` cannot contain '/'", nameof(key));
+        if (key.Contains(Separator)) throw new ArgumentException($"Cannot contain '{Separator}'", nameof(key));
 
         var prefix = ComputeModelPrefix<TRecord>();
 
@@ -31,12 +29,23 @@ public static class AddressUtilities
 #pragma warning disable CA1850
             var hash = sha.ComputeHash(type.GUID.ToByteArray())
 #pragma warning restore CA1850
-                .Take(HashLength)
                 .ToArray()
                 .ToRfc7515CString();
             prefix = ModelIdCache[type] = $"{name}{Separator}{hash}{Separator}";
         }
 
         return prefix;
+    }
+
+    public static String ExtractKeyFromAddress(String address)
+    {
+        if (address is null) throw new ArgumentNullException(nameof(address));
+
+        var pos = address.LastIndexOf(Separator);
+        if (pos < 0) throw new ArgumentException($"Must contain '{Separator}'");
+
+        // Recommendation not supported in .NET Standard 2.0
+        // ReSharper disable ReplaceSubstringWithRangeIndexer 
+        return address.Substring(pos + 1);
     }
 }
