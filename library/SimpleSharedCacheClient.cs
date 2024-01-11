@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using Azure;
 using Azure.Storage.Blobs;
 using ServcoX.SimpleSharedCache.Exceptions;
@@ -10,6 +11,7 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
 {
     private readonly Configuration _configuration;
     private readonly BlobContainerClient _container;
+    private readonly ConcurrentDictionary<Type, ConcurrentDictionary<String, Object>> _localCache = new();
 
     public SimpleSharedCacheClient(String connectionString, Action<Configuration>? builder = null)
     {
@@ -34,12 +36,14 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
-        var address = AddressUtilities.Compute<TRecord>(key);
-        var blob = _container.GetBlobClient(address);
+        SetLocalCache(key, record);
 
         using var stream = new MemoryStream();
         await JsonSerializer.SerializeAsync(stream, record, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
+
+        var address = AddressUtilities.Compute<TRecord>(key);
+        var blob = _container.GetBlobClient(address);
         await blob.UploadAsync(stream, true, cancellationToken).ConfigureAwait(false);
     }
 
@@ -47,14 +51,15 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
-        var value = await TryGet<TRecord>(key, cancellationToken).ConfigureAwait(false);
-        if (value is null) throw new NotFoundException();
-        return value;
+        return await TryGet<TRecord>(key, cancellationToken).ConfigureAwait(false) ?? throw new NotFoundException();
     }
 
     public async Task<TRecord?> TryGet<TRecord>(String key, CancellationToken cancellationToken = default)
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
+
+        var r = TryGetLocalCache<TRecord>(key);
+        if (r is not null) return r;
 
         var address = AddressUtilities.Compute<TRecord>(key);
         var blob = _container.GetBlobClient(address);
@@ -66,7 +71,9 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         // ReSharper disable once UseAwaitUsing
         using var stream = download.Value.Content.ToStream();
 #pragma warning restore CA2007
-        var record = await JsonSerializer.DeserializeAsync<TRecord>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
+        var record = await JsonSerializer.DeserializeAsync<TRecord>(stream, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false)!;
+        SetLocalCache(key, record);
+
         return record;
     }
 
@@ -82,5 +89,18 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
         })).ConfigureAwait(false);
 
         return records;
+    }
+
+    private TRecord? TryGetLocalCache<TRecord>(String key)
+    {
+        if (!_localCache.TryGetValue(typeof(TRecord), out var inner)) return default;
+        if (!inner.TryGetValue(key, out var record)) return default;
+        return (TRecord)record;
+    }
+
+    private void SetLocalCache<TRecord>(String key, TRecord record)
+    {
+        if (!_localCache.TryGetValue(typeof(TRecord), out var inner)) inner = _localCache[typeof(TRecord)] = new();
+        inner[key] = record!;
     }
 }
