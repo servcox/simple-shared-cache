@@ -73,15 +73,14 @@ public sealed class SimpleSharedCacheClient : ISimpleSharedCacheClient
     public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default)
     {
         var modelPrefix = AddressUtilities.ComputeModelPrefix<TRecord>();
-        var blobs = _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken);
+        var blobs = await _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken).ToList().ConfigureAwait(false);
 
-        var output = new List<TRecord>();
-        await foreach (var blob in blobs)
+        var records = await Task.WhenAll(blobs.Select(blob =>
         {
             var key = AddressUtilities.ExtractKeyFromAddress(blob.Name);
-            output.Add(await Get<TRecord>(key, cancellationToken).ConfigureAwait(false));
-        }
+            return Get<TRecord>(key, cancellationToken);
+        })).ConfigureAwait(false);
 
-        return output;
+        return records;
     }
 }
