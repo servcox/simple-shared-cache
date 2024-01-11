@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Storage.Blobs;
 
@@ -8,8 +9,7 @@ namespace ServcoX.SimpleSharedCache
     {
         public JsonSerializerOptions SerializerOptions { get; set; } = new()
         {
-            IgnoreNullValues = true,
-            // After upgrade: DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
         };
 
         public BlobClientOptions BlobClientOptions { get; set; } = new()
@@ -22,7 +22,7 @@ namespace ServcoX.SimpleSharedCache
             },
         };
 
-        public String ContainerName { get; set; } = "cache";
+        public String ContainerName { get; private set; } = "cache";
 
         public Configuration UseContainerName(String containerName)
         {
