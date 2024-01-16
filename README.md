@@ -6,12 +6,12 @@ servers? Need it to be cheap? SimpleSharedCache is for you.
 SimpleSharedCache persists data in Azure Blob Storage, so it's super cheap, reliable and quite fast.
 
 # Installation
-Grab it from NuGet from `dotnet add package ServcoX.SimpleSharedCache` or `dotnet add package ServcoX.SimpleSharedCache.DependencyInjection` for DI support.
+Grab it from NuGet from `dotnet add package ServcoX.SimpleSharedCache`.
 
 ## How do I make it go?
 Define what you want to cache. Something like this:
 ```c#
-public readonly record struct TestRecord(String Body);
+public record TestRecord(String Body);
 ```
 
 Instantiate the cache like so:
