@@ -7,12 +7,12 @@ public sealed class Wrapper : IDisposable
     private const String DevelopmentConnectionString = "UseDevelopmentStorage=true;";
 
     public BlobContainerClient Container { get; }
-    public ISimpleSharedCacheClient Sut { get; }
+    public SimpleSharedCacheClient Sut { get; }
 
     public Wrapper()
     {
         var containerName = $"cache-{Guid.NewGuid().ToString("N").ToLowerInvariant()}";
-        Sut = new SimpleSharedCacheClient(DevelopmentConnectionString, cfg => cfg
+        Sut = new (DevelopmentConnectionString, cfg => cfg
             .UseContainerName(containerName)
         );
 
