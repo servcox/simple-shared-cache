@@ -26,7 +26,7 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
     /// <summary>
     /// Store a record for a given key and record type.
     /// </summary>
-    public async Task Set<TRecord>(String key, TRecord record, CancellationToken cancellationToken = default) where TRecord : struct
+    public async Task Set<TRecord>(String key, TRecord record, CancellationToken cancellationToken = default) where TRecord : class
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
@@ -37,21 +37,21 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
     /// <summary>
     /// Retrieve a record for a given key and record type. Throws exception if not found.
     /// </summary>
-    public async Task<TRecord> Get<TRecord>(String key, CancellationToken cancellationToken = default) where TRecord : struct =>
+    public async Task<TRecord> Get<TRecord>(String key, CancellationToken cancellationToken = default) where TRecord : class =>
         await TryGet<TRecord>(key, cancellationToken).ConfigureAwait(false) ?? throw new NotFoundException();
 
     /// <summary>
     /// Retrieve a record for a given key and record type. Returns `null` if not found.
     /// </summary>
-    public async Task<TRecord?> TryGet<TRecord>(String key, CancellationToken cancellationToken = default) where TRecord : struct
+    public async Task<TRecord?> TryGet<TRecord>(String key, CancellationToken cancellationToken = default) where TRecord : class
     {
         if (String.IsNullOrEmpty(key)) throw new ArgumentException("Cannot be null or empty", nameof(key));
 
         var record = TryGetLocalCache<TRecord>(key);
-        if (record.HasValue) return record;
+        if (record is not null) return record;
 
         record = await TryGetRemoteCache<TRecord>(key, cancellationToken).ConfigureAwait(false);
-        if (record.HasValue) SetLocalCache(key, record.Value);
+        if (record is not null) SetLocalCache(key, record);
 
         return record;
     }
@@ -62,7 +62,7 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
     /// <remarks>
     /// This may be performance intensive if there are many records of this type.
     /// </remarks>
-    public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : struct
+    public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : class
     {
         var keys = await GetRemoteCacheKeys<TRecord>(cancellationToken).ConfigureAwait(false);
         var records = await Task.WhenAll(keys.Select(key => Get<TRecord>(key, cancellationToken))).ConfigureAwait(false);
@@ -70,7 +70,7 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
         return records;
     }
 
-    private async Task<List<String>> GetRemoteCacheKeys<TRecord>(CancellationToken cancellationToken) where TRecord : struct
+    private async Task<List<String>> GetRemoteCacheKeys<TRecord>(CancellationToken cancellationToken) where TRecord : class
     {
         var modelPrefix = AddressUtilities.ComputeModelPrefix<TRecord>();
         var blobs = await _container.GetBlobsAsync(prefix: modelPrefix, cancellationToken: cancellationToken).ToList().ConfigureAwait(false);
@@ -91,20 +91,20 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
         }
     }
 
-    private void SetLocalCache<TRecord>(String key, TRecord record) where TRecord : struct
+    private void SetLocalCache<TRecord>(String key, TRecord record) where TRecord : class
     {
         if (!_localCache.TryGetValue(typeof(TRecord), out var inner)) inner = _localCache[typeof(TRecord)] = new();
         inner[key] = record;
     }
 
-    private TRecord? TryGetLocalCache<TRecord>(String key) where TRecord : struct
+    private TRecord? TryGetLocalCache<TRecord>(String key) where TRecord : class
     {
         if (!_localCache.TryGetValue(typeof(TRecord), out var inner)) return default;
         if (!inner.TryGetValue(key, out var record)) return default;
         return (TRecord?)record;
     }
 
-    private async Task SetRemoteCache<TRecord>(String key, TRecord record, CancellationToken cancellationToken) where TRecord : struct
+    private async Task SetRemoteCache<TRecord>(String key, TRecord record, CancellationToken cancellationToken) where TRecord : class
     {
         using var stream = new MemoryStream();
         await JsonSerializer.SerializeAsync(stream, record, _configuration.SerializerOptions, cancellationToken).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
         await blob.UploadAsync(stream, true, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<TRecord?> TryGetRemoteCache<TRecord>(String key, CancellationToken cancellationToken) where TRecord : struct
+    private async Task<TRecord?> TryGetRemoteCache<TRecord>(String key, CancellationToken cancellationToken) where TRecord : class
     {
         var address = AddressUtilities.Compute<TRecord>(key);
         var blob = _container.GetBlobClient(address);

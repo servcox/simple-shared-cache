@@ -1,6 +1,6 @@
 namespace ServcoX.SimpleSharedCache.Test.Records;
 
-public struct TestStruct
+public class TestRecord
 {
     public String A { get; set; }
 }
