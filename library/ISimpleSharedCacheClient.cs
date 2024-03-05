@@ -8,5 +8,5 @@ public interface ISimpleSharedCacheClient
 
     Task<TRecord?> TryGet<TRecord>(String key, CancellationToken cancellationToken = default) where TRecord : class;
 
-    Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : class;
+    Task<IReadOnlyDictionary<String, TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : class;
 }

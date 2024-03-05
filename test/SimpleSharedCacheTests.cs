@@ -73,18 +73,21 @@ public class SimpleSharedCacheTests
     {
         using var wrapper = new Wrapper();
         var keyA1 = GenerateId();
-        await wrapper.Sut.Set(keyA1, new TestRecord { A = keyA1 });
+        var valueA1 = GenerateId();
+        await wrapper.Sut.Set(keyA1, new TestRecord { A = valueA1 });
 
         var keyA2 = GenerateId();
-        await wrapper.Sut.Set(keyA2, new TestRecord { A = keyA2 });
+        var valueA2 = GenerateId();
+        await wrapper.Sut.Set(keyA2, new TestRecord { A = valueA2 });
 
         var keyB = GenerateId();
-        await wrapper.Sut.Set(keyB, new TestAlternativeRecord { A = keyB });
+        var valueB = GenerateId();
+        await wrapper.Sut.Set(keyB, new TestAlternativeRecord { A = valueB });
 
         var records = await wrapper.Sut.List<TestRecord>();
         records.Count.Should().Be(2);
-        records.Should().ContainSingle(a => a.A == keyA1);
-        records.Should().ContainSingle(a => a.A == keyA2);
+        records.Should().ContainSingle(a => a.Key == keyA1 && a.Value.A == valueA1);
+        records.Should().ContainSingle(a => a.Key == keyA2 && a.Value.A == valueA2);
     }
 
     private static String GenerateId() => Guid.NewGuid().ToString("N");

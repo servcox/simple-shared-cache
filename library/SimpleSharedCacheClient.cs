@@ -62,12 +62,19 @@ public class SimpleSharedCacheClient : ISimpleSharedCacheClient
     /// <remarks>
     /// This may be performance intensive if there are many records of this type.
     /// </remarks>
-    public async Task<IReadOnlyList<TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : class
+    public async Task<IReadOnlyDictionary<String, TRecord>> List<TRecord>(CancellationToken cancellationToken = default) where TRecord : class
     {
         var keys = await GetRemoteCacheKeys<TRecord>(cancellationToken).ConfigureAwait(false);
-        var records = await Task.WhenAll(keys.Select(key => Get<TRecord>(key, cancellationToken))).ConfigureAwait(false);
 
-        return records;
+        var tasks = keys.Select(async key => new
+        {
+            Key = key,
+            Values = await Get<TRecord>(key, cancellationToken).ConfigureAwait(false)
+        });
+
+        var records = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        return records.ToDictionary(record => record.Key, record => record.Values).AsReadOnly();
     }
 
     private async Task<List<String>> GetRemoteCacheKeys<TRecord>(CancellationToken cancellationToken) where TRecord : class
