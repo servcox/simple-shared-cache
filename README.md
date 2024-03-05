@@ -19,11 +19,6 @@ Instantiate the cache like so:
 var cache = new SimpleSharedCacheClient("=== onnection string goes here ===");
 ```
 
-Or if you're using Microsoft DI, then you can use this:
-```c#
-builder.Services.AddSimpleSharedCache("=== connection string goes here ===");
-```
-
 Write your record:
 ```c#
 var record = new TestRecord("Something to cache");
